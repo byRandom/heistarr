@@ -1,0 +1,32 @@
+[package]
+name = "heistarr-server"
+description = "Heistarr server: API, library, indexers, downloader and importer"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "heistarr"
+path = "src/main.rs"
+
+[dependencies]
+heistarr-core = { path = "../core" }
+serde.workspace = true
+serde_json.workspace = true
+anyhow = "1"
+argon2 = "0.5"
+axum = "0.8"
+rand = "0.9"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "cookies"] }
+roxmltree = "0.20"
+rusqlite = { version = "0.37", features = ["bundled"] }
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "fs", "signal"] }
+tower-http = { version = "0.6", features = ["fs"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+urlencoding = "2"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
+http-body-util = "0.1"
+tempfile = "3"
