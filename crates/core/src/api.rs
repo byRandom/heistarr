@@ -39,12 +39,18 @@ pub struct Movie {
     pub tmdb_id: i64,
     pub imdb_id: Option<String>,
     pub title: String,
+    /// Title in the original language, when it differs (releases often use
+    /// it instead of the translated one).
+    #[serde(default)]
+    pub original_title: Option<String>,
     pub year: Option<i32>,
     pub overview: String,
     pub poster_path: Option<String>,
     pub status: MovieStatus,
     /// Path of the imported file, once available.
     pub file_path: Option<String>,
+    /// Quality of the imported file (`None` when unknown or no file).
+    pub file_quality: Option<crate::rules::Quality>,
     pub added_at: i64,
 }
 
@@ -82,6 +88,24 @@ pub struct Release {
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct MovieDetail {
+    pub movie: Movie,
+    pub downloads: Vec<Download>,
+    pub blocklist: Vec<BlockedRelease>,
+}
+
+/// A release that failed or was removed by hand; never grabbed again for
+/// that movie.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct BlockedRelease {
+    pub id: i64,
+    pub movie_id: i64,
+    pub release_title: String,
+    pub reason: String,
+    pub at: i64,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Grab {
     pub movie_id: i64,
     pub release: Release,
@@ -107,6 +131,29 @@ pub struct HistoryEvent {
     pub message: String,
 }
 
+/// What a secret looks like when sent to the UI: only the last 4 characters.
+/// Saving a value that still starts with the mask keeps the stored secret.
+pub const SECRET_MASK: &str = "••••";
+
+pub fn mask_secret(s: &str) -> String {
+    if s.is_empty() {
+        return String::new();
+    }
+    let tail: String = s
+        .chars()
+        .rev()
+        .take(4)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect();
+    format!("{SECRET_MASK}{tail}")
+}
+
+pub fn is_masked(s: &str) -> bool {
+    s.starts_with(SECRET_MASK)
+}
+
 #[derive(Clone, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Indexer {
     pub id: i64,
@@ -123,15 +170,49 @@ pub struct Settings {
     pub tmdb_key: String,
     /// Root folder that holds one folder per movie.
     pub movies_root: String,
+    /// Download client: `qbittorrent` or `synology` (Download Station).
+    #[serde(default = "default_client")]
+    pub download_client: String,
     pub qbit_url: String,
     pub qbit_username: String,
     pub qbit_password: String,
     pub qbit_category: String,
+    /// Synology DSM address, e.g. `http://nas:5000`.
+    #[serde(default)]
+    pub synology_url: String,
+    #[serde(default)]
+    pub synology_username: String,
+    #[serde(default)]
+    pub synology_password: String,
+    /// Shared folder path for new tasks, e.g. `data/torrents`. Empty: the
+    /// Download Station default.
+    #[serde(default)]
+    pub synology_destination: String,
+    /// Remove the torrent (and its data) from qBittorrent after import, or
+    /// keep seeding it.
+    #[serde(default)]
+    pub remove_after_import: bool,
+    /// When qBittorrent sees another filesystem (Docker), its save path
+    /// prefix and what that prefix is here. Empty: same paths.
+    #[serde(default)]
+    pub remote_path: String,
+    #[serde(default)]
+    pub local_path: String,
+    /// Language for TMDB titles and overviews, e.g. `es-ES`. Empty: English.
+    #[serde(default)]
+    pub metadata_language: String,
+    /// Theme id, e.g. `miami`.
+    #[serde(default)]
+    pub theme: String,
     /// `jellyfin`, `plex` or empty.
     pub media_server_kind: String,
     pub media_server_url: String,
     pub media_server_token: String,
     pub rules: crate::rules::PickRules,
+}
+
+fn default_client() -> String {
+    "qbittorrent".into()
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -150,6 +231,20 @@ pub struct SetupState {
 pub struct Login {
     pub username: String,
     pub password: String,
+}
+
+/// Result of a "Test" button.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TestResult {
+    pub ok: bool,
+    pub message: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ScanReport {
+    pub matched: Vec<String>,
+    pub unmatched: Vec<String>,
+    pub already: usize,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

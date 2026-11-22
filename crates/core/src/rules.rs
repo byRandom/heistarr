@@ -39,7 +39,10 @@ fn yes() -> bool {
 }
 
 fn default_cutoff() -> Quality {
-    Quality { resolution: Resolution::R1080, source: Source::BluRay }
+    Quality {
+        resolution: Resolution::R1080,
+        source: Source::BluRay,
+    }
 }
 
 /// Resolution plus source: what upgrades and the cutoff compare.
@@ -51,7 +54,10 @@ pub struct Quality {
 
 impl Quality {
     pub fn of(r: &ParsedRelease) -> Self {
-        Self { resolution: r.resolution, source: r.source }
+        Self {
+            resolution: r.resolution,
+            source: r.source,
+        }
     }
 
     /// Orders qualities: resolution first, then source.
@@ -138,9 +144,17 @@ pub fn judge(
     if r.resolution == Resolution::Unknown {
         rejections.push("unknown resolution".into());
     } else if r.resolution < rules.min_resolution {
-        rejections.push(format!("{} is below {}", r.resolution.label(), rules.min_resolution.label()));
+        rejections.push(format!(
+            "{} is below {}",
+            r.resolution.label(),
+            rules.min_resolution.label()
+        ));
     } else if r.resolution > rules.max_resolution {
-        rejections.push(format!("{} is above {}", r.resolution.label(), rules.max_resolution.label()));
+        rejections.push(format!(
+            "{} is above {}",
+            r.resolution.label(),
+            rules.max_resolution.label()
+        ));
     }
     let mib = size / (1024 * 1024);
     if rules.min_size_mib > 0 && mib < rules.min_size_mib {
@@ -158,9 +172,16 @@ pub fn judge(
         rejections.push("x265 not allowed".into());
     }
     if !rules.languages.is_empty() {
-        let langs: &[Language] = if r.languages.is_empty() { &[Language::English] } else { &r.languages };
+        let langs: &[Language] = if r.languages.is_empty() {
+            &[Language::English]
+        } else {
+            &r.languages
+        };
         let ok = langs.iter().any(|l| rules.languages.contains(l))
-            || rules.accept_multi && langs.iter().any(|l| matches!(l, Language::Multi | Language::Dual));
+            || rules.accept_multi
+                && langs
+                    .iter()
+                    .any(|l| matches!(l, Language::Multi | Language::Dual));
         if !ok {
             let names: Vec<_> = langs.iter().map(|l| l.label()).collect();
             rejections.push(format!("audio {} not wanted", names.join("/")));
@@ -174,7 +195,10 @@ pub fn judge(
     }
 
     if !rejections.is_empty() {
-        return Verdict { score: None, rejections };
+        return Verdict {
+            score: None,
+            rejections,
+        };
     }
 
     let mut score = Quality::of(r).rank();
@@ -190,7 +214,10 @@ pub fn judge(
         // Up to +10 for well-seeded torrents, log scale.
         score += (s.max(1) as f32).log2().min(10.0) as i32;
     }
-    Verdict { score: Some(score), rejections }
+    Verdict {
+        score: Some(score),
+        rejections,
+    }
 }
 
 #[cfg(test)]
@@ -201,36 +228,77 @@ mod tests {
     const GIB: u64 = 1024 * 1024 * 1024;
 
     fn verdict(name: &str, size: u64) -> Verdict {
-        let t = Target { title: "The Matrix", year: Some(1999) };
+        let t = Target {
+            title: "The Matrix",
+            year: Some(1999),
+        };
         judge(&PickRules::default(), &t, &parse(name), size, Some(50))
     }
 
     #[test]
     fn prefers_bluray_over_webrip_same_resolution() {
-        let a = verdict("The.Matrix.1999.1080p.BluRay.x264-A", 8 * GIB).score.unwrap();
-        let b = verdict("The.Matrix.1999.1080p.WEBRip.x264-B", 8 * GIB).score.unwrap();
+        let a = verdict("The.Matrix.1999.1080p.BluRay.x264-A", 8 * GIB)
+            .score
+            .unwrap();
+        let b = verdict("The.Matrix.1999.1080p.WEBRip.x264-B", 8 * GIB)
+            .score
+            .unwrap();
         assert!(a > b);
     }
 
     #[test]
     fn rejects_out_of_range() {
-        assert!(verdict("The.Matrix.1999.2160p.BluRay.x265-A", 8 * GIB).score.is_none());
-        assert!(verdict("The.Matrix.1999.480p.DVDRip-A", GIB).score.is_none());
-        assert!(verdict("The.Matrix.1999.1080p.BluRay-A", 40 * GIB).score.is_none());
-        assert!(verdict("The.Matrix.1999.1080p.HDCAM-A", 2 * GIB).score.is_none());
+        assert!(
+            verdict("The.Matrix.1999.2160p.BluRay.x265-A", 8 * GIB)
+                .score
+                .is_none()
+        );
+        assert!(
+            verdict("The.Matrix.1999.480p.DVDRip-A", GIB)
+                .score
+                .is_none()
+        );
+        assert!(
+            verdict("The.Matrix.1999.1080p.BluRay-A", 40 * GIB)
+                .score
+                .is_none()
+        );
+        assert!(
+            verdict("The.Matrix.1999.1080p.HDCAM-A", 2 * GIB)
+                .score
+                .is_none()
+        );
     }
 
     #[test]
     fn rejects_wrong_title_and_year() {
-        assert!(verdict("The.Matrix.Reloaded.2003.1080p.BluRay-A", 8 * GIB).score.is_none());
-        assert!(verdict("The.Matrix.2021.1080p.BluRay-A", 8 * GIB).score.is_none());
+        assert!(
+            verdict("The.Matrix.Reloaded.2003.1080p.BluRay-A", 8 * GIB)
+                .score
+                .is_none()
+        );
+        assert!(
+            verdict("The.Matrix.2021.1080p.BluRay-A", 8 * GIB)
+                .score
+                .is_none()
+        );
     }
 
     #[test]
     fn audio_language() {
-        let rules = PickRules { languages: vec![Language::Spanish], ..PickRules::default() };
-        let t = Target { title: "The Matrix", year: Some(1999) };
-        let ok = |n: &str| judge(&rules, &t, &parse(n), 8 * GIB, Some(5)).score.is_some();
+        let rules = PickRules {
+            languages: vec![Language::Spanish],
+            ..PickRules::default()
+        };
+        let t = Target {
+            title: "The Matrix",
+            year: Some(1999),
+        };
+        let ok = |n: &str| {
+            judge(&rules, &t, &parse(n), 8 * GIB, Some(5))
+                .score
+                .is_some()
+        };
         assert!(ok("The.Matrix.1999.1080p.BluRay.CASTELLANO-A"));
         assert!(ok("The.Matrix.1999.MULTi.1080p.BluRay-A"));
         assert!(!ok("The.Matrix.1999.1080p.BluRay-A"));
@@ -240,16 +308,35 @@ mod tests {
     #[test]
     fn upgrades_stop_at_cutoff() {
         let r = PickRules::default();
-        let q = |res, source| Quality { resolution: res, source };
-        assert!(is_upgrade(&r, q(Resolution::R720, Source::WebDl), q(Resolution::R1080, Source::WebDl)));
-        assert!(!is_upgrade(&r, q(Resolution::R1080, Source::WebDl), q(Resolution::R720, Source::BluRay)));
-        assert!(!is_upgrade(&r, q(Resolution::R1080, Source::BluRay), q(Resolution::R1080, Source::Remux)));
+        let q = |res, source| Quality {
+            resolution: res,
+            source,
+        };
+        assert!(is_upgrade(
+            &r,
+            q(Resolution::R720, Source::WebDl),
+            q(Resolution::R1080, Source::WebDl)
+        ));
+        assert!(!is_upgrade(
+            &r,
+            q(Resolution::R1080, Source::WebDl),
+            q(Resolution::R720, Source::BluRay)
+        ));
+        assert!(!is_upgrade(
+            &r,
+            q(Resolution::R1080, Source::BluRay),
+            q(Resolution::R1080, Source::Remux)
+        ));
     }
 
     #[test]
     fn preferred_word_bonus() {
-        let a = verdict("The.Matrix.1999.1080p.BluRay.PROPER-A", 8 * GIB).score.unwrap();
-        let b = verdict("The.Matrix.1999.1080p.BluRay-A", 8 * GIB).score.unwrap();
+        let a = verdict("The.Matrix.1999.1080p.BluRay.PROPER-A", 8 * GIB)
+            .score
+            .unwrap();
+        let b = verdict("The.Matrix.1999.1080p.BluRay-A", 8 * GIB)
+            .score
+            .unwrap();
         assert_eq!(a - b, 15 + 5); // preferred word + proper
     }
 }

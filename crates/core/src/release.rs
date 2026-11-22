@@ -155,7 +155,11 @@ pub fn normalize_title(s: &str) -> String {
         .filter(|w| !w.is_empty())
     {
         let w: String = word.chars().filter(|c| *c != '\'').collect();
-        let w = if w == "&" { "and".to_string() } else { w.to_lowercase() };
+        let w = if w == "&" {
+            "and".to_string()
+        } else {
+            w.to_lowercase()
+        };
         if w.is_empty() {
             continue;
         }
@@ -223,7 +227,10 @@ pub fn parse(name: &str) -> ParsedRelease {
         None
     };
 
-    let mut languages: Vec<Language> = tokens.iter().filter_map(|t| Language::from_token(t)).collect();
+    let mut languages: Vec<Language> = tokens
+        .iter()
+        .filter_map(|t| Language::from_token(t))
+        .collect();
     languages.sort();
     languages.dedup();
 
@@ -243,10 +250,27 @@ pub fn parse(name: &str) -> ParsedRelease {
             .position(|t| {
                 Language::from_token(t).is_some()
                     || matches!(
-                    t.as_str(),
-                    "2160p" | "1080p" | "1080i" | "720p" | "576p" | "480p" | "bluray" | "webrip"
-                        | "webdl" | "web" | "hdtv" | "dvdrip" | "remux" | "x264" | "x265" | "hdcam" | "cam" | "camrip" | "hdts"
-                )
+                        t.as_str(),
+                        "2160p"
+                            | "1080p"
+                            | "1080i"
+                            | "720p"
+                            | "576p"
+                            | "480p"
+                            | "bluray"
+                            | "webrip"
+                            | "webdl"
+                            | "web"
+                            | "hdtv"
+                            | "dvdrip"
+                            | "remux"
+                            | "x264"
+                            | "x265"
+                            | "hdcam"
+                            | "cam"
+                            | "camrip"
+                            | "hdts"
+                    )
             })
             .unwrap_or(raw.len()),
     };
@@ -311,7 +335,10 @@ mod tests {
     #[test]
     fn languages() {
         let r = parse("Dune.Parte.Dos.2024.1080p.WEB-DL.CASTELLANO.LATINO.ENGLISH-X");
-        assert_eq!(r.languages, vec![Language::English, Language::Spanish, Language::Latino]);
+        assert_eq!(
+            r.languages,
+            vec![Language::English, Language::Spanish, Language::Latino]
+        );
         let r = parse("Oppenheimer.2023.MULTi.2160p.WEB-DL-Y");
         assert_eq!(r.languages, vec![Language::Multi]);
         let r = parse("The.Matrix.1999.1080p.BluRay.x264-GROUP");
@@ -322,6 +349,9 @@ mod tests {
     fn normalize() {
         assert_eq!(normalize_title("Fast & Furious"), "fast and furious");
         assert_eq!(normalize_title("Schindler's List"), "schindlers list");
-        assert_eq!(normalize_title("Spider-Man: No Way Home"), "spider man no way home");
+        assert_eq!(
+            normalize_title("Spider-Man: No Way Home"),
+            "spider man no way home"
+        );
     }
 }
