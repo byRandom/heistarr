@@ -1,5 +1,5 @@
 [package]
-name = "reelhouse-core"
+name = "heistarr-core"
 description = "Shared types, release-name parsing and pick rules"
 version.workspace = true
 edition.workspace = true
