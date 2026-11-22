@@ -28,7 +28,7 @@ reqwest = { version = "0.12", default-features = false, features = ["json", "rus
 roxmltree = "0.20"
 rusqlite = { version = "0.37", features = ["bundled"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "time", "fs", "signal"] }
-tower-http = { version = "0.6", features = ["fs", "set-header"] }
+tower-http = { version = "0.6", features = ["fs", "set-header", "compression-gzip"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 urlencoding = "2"

@@ -1,0 +1,4 @@
+target
+data
+crates/web/dist
+.git

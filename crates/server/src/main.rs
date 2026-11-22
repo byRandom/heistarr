@@ -33,8 +33,28 @@ fn web_dir() -> PathBuf {
     PathBuf::from("crates/web/dist")
 }
 
+/// `heistarr healthcheck`: exit 0 when the local server answers /healthz.
+/// Used by the Docker HEALTHCHECK (the image has no curl).
+fn healthcheck() -> ! {
+    use std::io::{Read, Write};
+    let port = env("HEISTARR_PORT").unwrap_or_else(|| "6464".into());
+    let ok = (|| -> std::io::Result<bool> {
+        let mut s = std::net::TcpStream::connect(format!("127.0.0.1:{port}"))?;
+        s.set_read_timeout(Some(std::time::Duration::from_secs(5)))?;
+        s.write_all(b"GET /healthz HTTP/1.0\r\nHost: localhost\r\n\r\n")?;
+        let mut buf = String::new();
+        s.read_to_string(&mut buf)?;
+        Ok(buf.starts_with("HTTP/1.0 200") || buf.starts_with("HTTP/1.1 200"))
+    })()
+    .unwrap_or(false);
+    std::process::exit(if ok { 0 } else { 1 })
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
+    if std::env::args().nth(1).as_deref() == Some("healthcheck") {
+        healthcheck();
+    }
     let data_dir = PathBuf::from(env("HEISTARR_DATA").unwrap_or_else(|| "data".into()));
     std::fs::create_dir_all(data_dir.join("logs"))
         .with_context(|| format!("creating {}", data_dir.display()))?;

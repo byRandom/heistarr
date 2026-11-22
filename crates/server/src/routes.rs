@@ -49,12 +49,13 @@ pub fn router(app: App) -> Router {
     let web_dir = app.cfg.web_dir.clone();
     let index = web_dir.join("index.html");
     let static_files = tower_http::services::ServeDir::new(&web_dir)
-        .not_found_service(tower_http::services::ServeFile::new(index));
+        .fallback(tower_http::services::ServeFile::new(index));
 
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
         .nest("/api", api)
         .fallback_service(static_files)
+        .layer(tower_http::compression::CompressionLayer::new())
         .layer(
             tower_http::set_header::SetResponseHeaderLayer::if_not_present(
                 header::X_FRAME_OPTIONS,

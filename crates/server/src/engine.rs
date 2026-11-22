@@ -176,7 +176,14 @@ pub async fn releases(app: &App, m: &Movie) -> Result<Vec<Release>> {
     if out.is_empty() && !errors.is_empty() {
         bail!("every indexer failed: {}", errors.join("; "));
     }
-    out.sort_by(|a, b| b.score.cmp(&a.score).then(b.seeders.cmp(&a.seeders)));
+    // Accepted first (best score first), then rejected ones with the fewest
+    // reasons, so near misses show above releases for other titles.
+    out.sort_by(|a, b| {
+        b.score
+            .cmp(&a.score)
+            .then(a.rejections.len().cmp(&b.rejections.len()))
+            .then(b.seeders.cmp(&a.seeders))
+    });
     out.dedup_by(|a, b| a.title == b.title && a.size == b.size);
     Ok(out)
 }

@@ -1,0 +1,25 @@
+# Example for a Synology NAS. Put downloads and the library under ONE
+# shared folder (here /volume1/data) so imports are hardlinks, not copies:
+#   /volume1/data/torrents      <- Download Station destination "data/torrents"
+#   /volume1/data/media/movies  <- Heistarr movies folder
+services:
+  heistarr:
+    image: heistarr:latest   # build with: docker build -t heistarr .
+    container_name: heistarr
+    environment:
+      - PUID=1026            # `id` of your NAS user
+      - PGID=100
+      - UMASK=002
+      - TZ=Europe/Madrid
+    volumes:
+      - /volume1/docker/heistarr:/config
+      - /volume1/data:/data
+    ports:
+      - 6464:6464
+    restart: unless-stopped
+# In Heistarr > Settings:
+#   Movies folder:     /data/media/movies
+#   Download client:   Synology Download Station, DSM address http://<nas-ip>:5000,
+#                      destination shared folder "data/torrents"
+#   Path mapping:      client path /data/torrents  ->  same folder here /data/torrents
+#                      (identical here, because the share is mounted at /data)
