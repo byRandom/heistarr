@@ -57,6 +57,64 @@ impl Source {
     }
 }
 
+/// Audio language tags commonly found in release names.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Language {
+    English,
+    /// Spain Spanish (`SPANISH`, `CASTELLANO`, `ESP`).
+    Spanish,
+    /// Latin American Spanish (`LATINO`, `LAT`).
+    Latino,
+    French,
+    German,
+    Italian,
+    /// Several audio tracks (`MULTi`), usually the original plus local ones.
+    Multi,
+    /// Two audio tracks (`DUAL`), usually the original plus one local one.
+    Dual,
+}
+
+impl Language {
+    pub const ALL: [Self; 8] = [
+        Self::English,
+        Self::Spanish,
+        Self::Latino,
+        Self::French,
+        Self::German,
+        Self::Italian,
+        Self::Multi,
+        Self::Dual,
+    ];
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::English => "English",
+            Self::Spanish => "Spanish (Spain)",
+            Self::Latino => "Spanish (Latin America)",
+            Self::French => "French",
+            Self::German => "German",
+            Self::Italian => "Italian",
+            Self::Multi => "MULTi",
+            Self::Dual => "DUAL",
+        }
+    }
+
+    fn from_token(t: &str) -> Option<Self> {
+        Some(match t {
+            "english" | "eng" => Self::English,
+            "spanish" | "castellano" | "esp" | "spa" | "espanol" | "español" => Self::Spanish,
+            "latino" | "lat" | "latam" => Self::Latino,
+            "french" | "truefrench" | "vff" | "vf" | "fra" => Self::French,
+            "german" | "ger" | "deu" => Self::German,
+            "italian" | "ita" => Self::Italian,
+            "multi" | "multilang" => Self::Multi,
+            "dual" => Self::Dual,
+            _ => return None,
+        })
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct ParsedRelease {
     pub title: String,
@@ -67,6 +125,9 @@ pub struct ParsedRelease {
     pub hdr: bool,
     pub proper: bool,
     pub group: Option<String>,
+    /// Audio languages named in the release; empty when none is named (most
+    /// often an English-only release).
+    pub languages: Vec<Language>,
     /// Lowercased tokens, for word rules.
     pub tokens: Vec<String>,
 }
@@ -162,6 +223,10 @@ pub fn parse(name: &str) -> ParsedRelease {
         None
     };
 
+    let mut languages: Vec<Language> = tokens.iter().filter_map(|t| Language::from_token(t)).collect();
+    languages.sort();
+    languages.dedup();
+
     let hdr = has("hdr") || has("hdr10") || has("dv") || has("dovi");
     let proper = has("proper") || has("repack");
 
@@ -176,7 +241,8 @@ pub fn parse(name: &str) -> ParsedRelease {
         None => tokens
             .iter()
             .position(|t| {
-                matches!(
+                Language::from_token(t).is_some()
+                    || matches!(
                     t.as_str(),
                     "2160p" | "1080p" | "1080i" | "720p" | "576p" | "480p" | "bluray" | "webrip"
                         | "webdl" | "web" | "hdtv" | "dvdrip" | "remux" | "x264" | "x265" | "hdcam" | "cam" | "camrip" | "hdts"
@@ -195,6 +261,7 @@ pub fn parse(name: &str) -> ParsedRelease {
         hdr,
         proper,
         group,
+        languages,
         tokens,
     }
 }
@@ -239,6 +306,16 @@ mod tests {
         assert_eq!(r.source, Source::Cam);
         assert_eq!(r.year, None);
         assert_eq!(r.title, "Some Movie");
+    }
+
+    #[test]
+    fn languages() {
+        let r = parse("Dune.Parte.Dos.2024.1080p.WEB-DL.CASTELLANO.LATINO.ENGLISH-X");
+        assert_eq!(r.languages, vec![Language::English, Language::Spanish, Language::Latino]);
+        let r = parse("Oppenheimer.2023.MULTi.2160p.WEB-DL-Y");
+        assert_eq!(r.languages, vec![Language::Multi]);
+        let r = parse("The.Matrix.1999.1080p.BluRay.x264-GROUP");
+        assert!(r.languages.is_empty());
     }
 
     #[test]
