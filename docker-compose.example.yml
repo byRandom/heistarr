@@ -4,7 +4,7 @@
 #   /volume1/data/media/movies  <- Heistarr movies folder
 services:
   heistarr:
-    image: heistarr:latest   # build with: docker build -t heistarr .
+    image: ghcr.io/byrandom/heistarr:edge   # or a version, e.g. :0.1.0
     container_name: heistarr
     environment:
       - PUID=1026            # `id` of your NAS user

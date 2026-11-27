@@ -4,6 +4,8 @@ description = "Heistarr web UI (Leptos, compiled to WebAssembly)"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]

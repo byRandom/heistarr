@@ -1,0 +1,152 @@
+name: Release
+
+# Publishes a version: Linux binaries (amd64, arm64), the web UI, a GitHub
+# Release with the CHANGELOG notes, and a multi-arch image on GHCR.
+#
+# Start it by pushing a tag (git tag v0.2.0 && git push origin v0.2.0) or
+# from the Actions tab ("Run workflow", version 0.2.0), which creates the tag.
+# The version must match `version` in Cargo.toml and have a CHANGELOG entry.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.2.0 (no v)"
+        required: true
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      prerelease: ${{ steps.v.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: v
+        name: Check the version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            v="${{ inputs.version }}"
+          else
+            v="${GITHUB_REF_NAME#v}"
+          fi
+          v="${v#v}"
+          cargo_v=$(grep -m1 '^version' Cargo.toml | cut -d'"' -f2)
+          if [ "$v" != "$cargo_v" ]; then
+            echo "::error::version $v does not match Cargo.toml ($cargo_v)"; exit 1
+          fi
+          if [ -z "$(scripts/release-notes.sh "$v")" ]; then
+            echo "::error::CHANGELOG.md has no section for $v"; exit 1
+          fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          # 0.x versions and -alpha/-beta/-rc are marked as pre-releases.
+          case "$v" in 0.*|*-*) echo "prerelease=true" >> "$GITHUB_OUTPUT";; *) echo "prerelease=false" >> "$GITHUB_OUTPUT";; esac
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+
+  web:
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo install wasm-bindgen-cli --version 0.2.100 --locked
+      - run: ./scripts/build-web.sh release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: crates/web/dist
+
+  binary:
+    needs: check
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.arch }}
+      - run: cargo build --release --locked -p heistarr-server
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.arch }}
+          path: target/release/heistarr
+
+  publish:
+    needs: [check, web, binary]
+    runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+      - name: Package
+        run: |
+          chmod +x dist/linux-*/heistarr
+          mkdir -p out
+          for arch in amd64 arm64; do
+            name="heistarr-$VERSION-linux-$arch"
+            mkdir -p "pkg/$name"
+            cp dist/linux-$arch/heistarr "pkg/$name/"
+            cp -r dist/web "pkg/$name/web"
+            cp LICENSE README.md CHANGELOG.md "pkg/$name/"
+            tar -C pkg -czf "out/$name.tar.gz" "$name"
+          done
+          (cd out && sha256sum *.tar.gz > SHA256SUMS)
+          scripts/release-notes.sh "$VERSION" > notes.md
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pre=""; [ "${{ needs.check.outputs.prerelease }}" = "true" ] && pre="--prerelease"
+          gh release create "v$VERSION" out/* --target "$GITHUB_SHA" \
+            --title "Heistarr $VERSION" --notes-file notes.md $pre
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      - name: Image tags
+        id: tags
+        run: |
+          img="ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+          tags="$img:$VERSION,$img:${VERSION%.*}"
+          [ "${{ needs.check.outputs.prerelease }}" = "true" ] || tags="$tags,$img:latest"
+          # 0.x: "edge" always points at the newest release.
+          tags="$tags,$img:edge"
+          echo "tags=$tags" >> "$GITHUB_OUTPUT"
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/Dockerfile.release
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.tags.outputs.tags }}

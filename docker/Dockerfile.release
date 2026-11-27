@@ -1,0 +1,16 @@
+# Release image: packs binaries already built by the release workflow
+# (dist/linux-amd64, dist/linux-arm64) and the web UI (dist/web).
+FROM debian:bookworm-slim
+ARG TARGETARCH
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates tzdata \
+ && rm -rf /var/lib/apt/lists/*
+COPY dist/linux-${TARGETARCH}/heistarr /app/heistarr
+COPY dist/web /app/web
+COPY docker/entrypoint.sh /entrypoint.sh
+ENV HEISTARR_DATA=/config HEISTARR_WEB=/app/web HEISTARR_PORT=6464 PUID=1000 PGID=1000 UMASK=002
+EXPOSE 6464
+VOLUME ["/config"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s CMD ["/app/heistarr", "healthcheck"]
+LABEL org.opencontainers.image.source="https://github.com/byRandom/heistarr" \
+      org.opencontainers.image.licenses="AGPL-3.0-or-later"
+ENTRYPOINT ["/entrypoint.sh"]

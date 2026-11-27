@@ -4,6 +4,8 @@ description = "Heistarr server: API, library, indexers, downloader and importer"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [[bin]]
 name = "heistarr"

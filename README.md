@@ -4,8 +4,8 @@ A self-hosted media manager written in Rust. One app, one login, one port:
 find movies, pick the best release with your rules, send it to your download
 client, file it in your library with a clean name and tell your media server.
 
-Status: **v0.1 — movies** (Phase 1 of [PLAN.md](PLAN.md)). Series, requests,
-subtitles and music come later.
+Status: **v0.1 — movies**. Series, requests, subtitles and music come later:
+see the [roadmap](ROADMAP.md) and the [changelog](CHANGELOG.md).
 
 ## What works
 
@@ -30,17 +30,19 @@ subtitles and music come later.
 
 ## Run it with Docker (Synology)
 
-See [docker-compose.example.yml](docker-compose.example.yml). In short:
-
-```bash
-docker build -t heistarr .
-```
+Images for amd64 and arm64 are published on GitHub Container Registry. See
+[docker-compose.example.yml](docker-compose.example.yml), or:
 
 ```bash
 docker run -d --name heistarr -p 6464:6464 \
   -e PUID=1026 -e PGID=100 -e UMASK=002 \
-  -v /volume1/docker/heistarr:/config -v /volume1/data:/data heistarr
+  -v /volume1/docker/heistarr:/config -v /volume1/data:/data \
+  ghcr.io/byrandom/heistarr:edge
 ```
+
+Use a version tag (`:0.1.0`, `:0.1`) to stay on one version. To build the
+image yourself: `docker build -t heistarr .`. Linux binaries are attached to
+each [release](https://github.com/byRandom/heistarr/releases).
 
 Open `http://<nas>:6464`, create the owner, then in **Settings**:
 
@@ -110,5 +112,11 @@ Internet.
 - Sign-in is rate-limited (5 failures per 15 min per address and per user).
 - State-changing API calls need the `X-Heistarr` header (CSRF protection);
   the session cookie is `HttpOnly; SameSite=Strict`.
+
+## License
+
+Heistarr is free software under the [GNU Affero General Public License v3.0
+or later](LICENSE). If you run a modified version for other people, you must
+offer them its source code.
 
 This product uses the TMDB API but is not endorsed or certified by TMDB.

@@ -2,8 +2,8 @@
 
 > Heistarr (nombre elegido; libre en GitHub, crates.io, Docker Hub y npm). Gestor multimedia autoalojado en Rust, inspirado en
 > HolyArrs (que sustituye a Sonarr, Radarr, Lidarr, Prowlarr, Bazarr y Overseerr), escrito desde
-> cero: sin código, nombre ni marca de HolyArrs (que es AGPL-3.0). Repositorio privado y sin
-> licencia pública por ahora.
+> cero: sin código, nombre ni marca de HolyArrs (que es AGPL-3.0). Repositorio público en
+> GitHub (byRandom/heistarr) bajo licencia AGPL-3.0 o posterior.
 
 ## 1. Objetivo
 
@@ -171,7 +171,9 @@ tests en verde, una versión etiquetada y notas de versión.
 | Tema | Decisión |
 |---|---|
 | Nombre | **Heistarr** (libre en GitHub, crates.io, Docker Hub y npm) |
-| Repositorio | Local por ahora; privado, sin licencia pública |
+| Repositorio | **Público** en GitHub (byRandom/heistarr) |
+| Licencia | **AGPL-3.0 o posterior** |
+| Versiones | SemVer; hoja de ruta en `ROADMAP.md`, notas en `CHANGELOG.md`, publicación con GitHub Actions |
 | Tecnología web | **Leptos** (no egui: hace falta vídeo y comportamiento web normal) |
 | Tema por defecto | **Miami Neón**; los otros cinco como alternativas |
 | Idioma | Interfaz, código y documentación en **inglés** |
