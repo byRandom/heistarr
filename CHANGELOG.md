@@ -8,6 +8,8 @@ automatically, but there is no downgrade.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-27
+
 ### Added
 - Browser tests (Playwright) of the main journey with Download Station,
   against fake services; run in CI and before every release.
@@ -47,5 +49,6 @@ First version: movies from search to library.
   `ghcr.io/byrandom/heistarr`; Linux binaries for amd64 and arm64.
 - Licensed under the GNU AGPL v3 or later.
 
-[Unreleased]: https://github.com/byRandom/heistarr/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/byRandom/heistarr/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/byRandom/heistarr/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/byRandom/heistarr/commits/v0.1.0

@@ -924,14 +924,14 @@ dependencies = [
 
 [[package]]
 name = "heistarr-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "heistarr-server"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "anyhow",
  "argon2",
@@ -962,7 +962,7 @@ dependencies = [
 
 [[package]]
 name = "heistarr-web"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "console_error_panic_hook",
  "gloo-net",
