@@ -8,6 +8,19 @@ automatically, but there is no downgrade.
 
 ## [Unreleased]
 
+### Added
+- Browser tests (Playwright) of the main journey with Download Station,
+  against fake services; run in CI and before every release.
+- Corpus of real release names checked by the parser tests.
+- `TESTING.md`: how the tests are organised and the rules for new work.
+
+### Fixed
+- `cargo run` showed a blank page when the web UI was not built: the UI is now
+  found from any working directory, and when it is missing the browser
+  explains how to build it.
+- A leading `[Group]` tag is no longer read as part of the title; `Ingles`
+  is read as English audio.
+
 ## [0.1.0] - 2026-11-27
 
 First version: movies from search to library.

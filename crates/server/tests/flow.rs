@@ -664,3 +664,39 @@ async fn poster_proxy_rejects_bad_paths() {
     );
     assert_eq!(e.get("/poster/w9999/a.jpg").await.0, StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn missing_web_ui_explains_how_to_build_it() {
+    let e = env().await;
+    // The test config points at a folder with no built UI.
+    let r = e
+        .http
+        .get(format!("{}/movies/1", e.url))
+        .send()
+        .await
+        .unwrap();
+    assert_eq!(r.status().as_u16(), 503);
+    assert!(r.text().await.unwrap().contains("build-web.sh"));
+
+    // Once built, it is served without a restart, with SPA fallback.
+    let web = e.dir.path().join("web");
+    std::fs::create_dir_all(&web).unwrap();
+    std::fs::write(web.join("index.html"), "<title>Heistarr</title>").unwrap();
+    std::fs::write(web.join("app.css"), "body{}").unwrap();
+    let get = |p: &str| e.http.get(format!("{}{p}", e.url)).send();
+    assert!(
+        get("/movies/1")
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap()
+            .contains("<title>Heistarr")
+    );
+    assert_eq!(
+        get("/app.css").await.unwrap().text().await.unwrap(),
+        "body{}"
+    );
+    // API routes never fall back to the UI.
+    assert_eq!(get("/api/nope").await.unwrap().status().as_u16(), 404);
+}

@@ -653,6 +653,28 @@ mod tests {
     }
 
     #[test]
+    fn reopening_keeps_data_and_newer_schema_is_refused() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("h.db");
+        let cipher = Cipher::random();
+        {
+            let db = Db::open(&path, cipher.clone()).unwrap();
+            db.insert_movie(&movie()).unwrap();
+        }
+        // Opening again runs no migration twice and keeps the rows.
+        let db = Db::open(&path, cipher.clone()).unwrap();
+        assert_eq!(db.movies().unwrap().len(), 1);
+        drop(db);
+        // A database written by a newer Heistarr must not be touched.
+        let c = Connection::open(&path).unwrap();
+        c.pragma_update(None, "user_version", (MIGRATIONS.len() + 1) as i64)
+            .unwrap();
+        drop(c);
+        let err = Db::open(&path, cipher).err().expect("refused");
+        assert!(err.to_string().contains("newer Heistarr"), "{err}");
+    }
+
+    #[test]
     fn first_owner_only_once() {
         let db = Db::memory().unwrap();
         assert!(db.create_first_owner("a", "h").unwrap().is_some());

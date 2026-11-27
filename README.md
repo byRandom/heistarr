@@ -77,6 +77,10 @@ cargo install wasm-bindgen-cli --version 0.2.100 --locked
 ./scripts/build-web.sh && cargo run --release -p heistarr-server
 ```
 
+The web UI is compiled separately from the server: if you start the server
+without building it, the browser shows a page explaining how. Build it while
+the server runs and reload; no restart needed.
+
 Environment variables: `HEISTARR_DATA` (default `./data`), `HEISTARR_PORT`
 (6464), `HEISTARR_BIND` (`0.0.0.0`), `HEISTARR_WEB` (web UI folder),
 `HEISTARR_MASTER_KEY` (base64, 32 bytes; otherwise `master.key` in the data
@@ -101,9 +105,10 @@ style/         CSS with one block of variables per theme
 cargo test --workspace
 ```
 
-The server tests run the real app against fake TMDB, Torznab, qBittorrent,
-Synology and Jellyfin servers started inside the test; nothing goes to the
-Internet.
+Unit tests, a corpus of real release names, server integration tests against
+fake TMDB, Torznab, qBittorrent, Synology and Jellyfin servers, and browser
+tests (Playwright) of the real app. Nothing goes to the Internet. CI runs all
+of it on every push and before every release: see [TESTING.md](TESTING.md).
 
 ## Security notes
 

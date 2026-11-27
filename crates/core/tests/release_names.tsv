@@ -1,0 +1,56 @@
+# Real-world release names and what the parser must read from them.
+# Columns (tab separated): name, title, year, resolution, source, languages
+# - year: number or "-"; resolution: 480p/576p/720p/1080p/2160p or "?"
+# - source: CAM TS DVD HDTV WEBRip WEB-DL BluRay Remux or "?"
+# - languages: comma separated (english, spanish, latino, french, german,
+#   italian, multi, dual) or "-" when none is named
+# Add every name the parser gets wrong here, with the right answer, before
+# fixing it.
+The.Matrix.1999.1080p.BluRay.x264-SPARKS	The Matrix	1999	1080p	BluRay	-
+The.Matrix.1999.REMASTERED.1080p.BluRay.x264-AMIABLE	The Matrix	1999	1080p	BluRay	-
+Blade.Runner.2049.2017.2160p.UHD.BluRay.REMUX.HDR.HEVC.Atmos-EPSiLON	Blade Runner 2049	2017	2160p	Remux	-
+Dune.Part.Two.2024.1080p.WEB-DL.DDP5.1.Atmos.H.264-FLUX	Dune Part Two	2024	1080p	WEB-DL	-
+Dune Part Two (2024) 1080p WEB-DL DDP5.1 H.264	Dune Part Two	2024	1080p	WEB-DL	-
+Oppenheimer.2023.2160p.AMZN.WEB-DL.DDP5.1.H.265-FLUX	Oppenheimer	2023	2160p	WEB-DL	-
+Oppenheimer.2023.1080p.WEBRip.x264.AAC5.1-[YTS.MX]	Oppenheimer	2023	1080p	WEBRip	-
+Barbie.2023.720p.WEBRip.800MB.x264-GalaxyRG	Barbie	2023	720p	WEBRip	-
+Inception.2010.720p.BRRip.x264-YIFY	Inception	2010	720p	BluRay	-
+Interstellar.2014.IMAX.2160p.UHD.BluRay.x265.10bit.HDR.DTS-HD.MA.5.1-SWTYBLZ	Interstellar	2014	2160p	BluRay	-
+The.Godfather.1972.480p.DVDRip.XviD-DEViSE	The Godfather	1972	480p	DVD	-
+Alien.1979.Directors.Cut.576p.DVDRip.x264-HANDJOB	Alien	1979	576p	DVD	-
+Some.New.Movie.2024.HDCAM.x264-ZZZ	Some New Movie	2024	?	CAM	-
+Some.New.Movie.2024.HDTS.x264-ZZZ	Some New Movie	2024	?	TS	-
+Gladiator.II.2024.1080p.HDTV.x264-GRP	Gladiator II	2024	1080p	HDTV	-
+1917.2019.1080p.BluRay.x264-SPARKS	1917	2019	1080p	BluRay	-
+2001.A.Space.Odyssey.1968.1080p.BluRay.x264-AMIABLE	2001 A Space Odyssey	1968	1080p	BluRay	-
+Fast.&.Furious.2009.1080p.BluRay.x264-HD1080	Fast & Furious	2009	1080p	BluRay	-
+Spider-Man.No.Way.Home.2021.1080p.WEB-DL.DDP5.1.Atmos.H.264-EVO	Spider Man No Way Home	2021	1080p	WEB-DL	-
+Mission.Impossible.Dead.Reckoning.Part.One.2023.1080p.NF.WEB-DL.DDP5.1.H.264-FLUX	Mission Impossible Dead Reckoning Part One	2023	1080p	WEB-DL	-
+The.Batman.2022.2160p.DSNP.WEB-DL.DDP5.1.Atmos.DV.HDR.H.265-FLUX	The Batman	2022	2160p	WEB-DL	-
+Heat.1995.REPACK.1080p.BluRay.x264-AMIABLE	Heat	1995	1080p	BluRay	-
+Heat.1995.PROPER.720p.BluRay.x264-SiNNERS	Heat	1995	720p	BluRay	-
+Dune.Parte.Dos.2024.1080p.WEB-DL.CASTELLANO.LATINO.ENGLISH-X	Dune Parte Dos	2024	1080p	WEB-DL	english,spanish,latino
+Oppenheimer.2023.MULTi.2160p.WEB-DL.H265-Y	Oppenheimer	2023	2160p	WEB-DL	multi
+La.Sociedad.De.La.Nieve.2023.1080p.NF.WEB-DL.CASTELLANO.DDP5.1.H.264	La Sociedad De La Nieve	2023	1080p	WEB-DL	spanish
+Coco.2017.1080p.BluRay.x264.Dual.Latino.Ingles	Coco	2017	1080p	BluRay	english,latino,dual
+Amelie.2001.FRENCH.1080p.BluRay.x264-LOST	Amelie	2001	1080p	BluRay	french
+Das.Boot.1981.GERMAN.DC.1080p.BluRay.x264-DETAiLS	Das Boot	1981	1080p	BluRay	german
+La.Vita.E.Bella.1997.iTALiAN.720p.BluRay.x264-GRP	La Vita E Bella	1997	720p	BluRay	italian
+Parasite.2019.MULTi.1080p.BluRay.x264-Ulysse	Parasite	2019	1080p	BluRay	multi
+El.Laberinto.Del.Fauno.2006.SPANISH.1080p.BluRay.x264-GRP	El Laberinto Del Fauno	2006	1080p	BluRay	spanish
+Top.Gun.Maverick.2022.1080p.BluRay.x264.DUAL-GRP	Top Gun Maverick	2022	1080p	BluRay	dual
+Avatar.The.Way.of.Water.2022.4K.HDR.DV.2160p.WEBDL.Ita.Eng.x265-NAHOM	Avatar The Way of Water	2022	2160p	WEB-DL	english,italian
+Joker.2019.1080p.BluRay.REMUX.AVC.DTS-HD.MA.7.1-FGT	Joker	2019	1080p	Remux	-
+Arrival.2016.1080p.BluRay.x264.DTS-HD.MA.5.1-HDChina	Arrival	2016	1080p	BluRay	-
+The.Shawshank.Redemption.1994.1080p.BluRay.x265-RARBG	The Shawshank Redemption	1994	1080p	BluRay	-
+Up.2009.1080p.BluRay.x264-CiNEFiLE	Up	2009	1080p	BluRay	-
+Her.2013.720p.WEB-DL.DD5.1.H264-FGT	Her	2013	720p	WEB-DL	-
+Nope.2022.1080p.AMZN.WEBRip.DDP5.1.x264-SMURF	Nope	2022	1080p	WEB-DL	-
+Tenet.2020.IMAX.1080p.WEBRip.x264-GRP	Tenet	2020	1080p	WEBRip	-
+The.Lord.of.the.Rings.The.Fellowship.of.the.Ring.2001.EXTENDED.1080p.BluRay.x264-FSiHD	The Lord of the Rings The Fellowship of the Ring	2001	1080p	BluRay	-
+Star.Wars.Episode.IV.A.New.Hope.1977.1080p.BluRay.x264-GRP	Star Wars Episode IV A New Hope	1977	1080p	BluRay	-
+Seven.Samurai.1954.CRITERION.1080p.BluRay.x264-GRP	Seven Samurai	1954	1080p	BluRay	-
+Metropolis.1927.720p.BluRay.x264-GRP	Metropolis	1927	720p	BluRay	-
+[Group] Some Movie (2020) [1080p] [BluRay]	Some Movie	2020	1080p	BluRay	-
+Some_Movie_2020_1080p_BluRay_x264-GRP	Some Movie	2020	1080p	BluRay	-
+Some Movie 2020 2160p UHD BluRay x265 10bit HDR DTS-HD MA 7.1-GRP	Some Movie	2020	2160p	BluRay	-

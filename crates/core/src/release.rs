@@ -102,7 +102,7 @@ impl Language {
 
     fn from_token(t: &str) -> Option<Self> {
         Some(match t {
-            "english" | "eng" => Self::English,
+            "english" | "eng" | "ingles" | "inglés" => Self::English,
             "spanish" | "castellano" | "esp" | "spa" | "espanol" | "español" => Self::Spanish,
             "latino" | "lat" | "latam" => Self::Latino,
             "french" | "truefrench" | "vff" | "vf" | "fra" => Self::French,
@@ -178,7 +178,16 @@ pub fn parse(name: &str) -> ParsedRelease {
         .filter(|g| !g.is_empty() && !g.contains(['.', ' ']) && g.len() <= 20)
         .map(str::to_string);
 
-    let raw: Vec<&str> = name.split(is_sep).filter(|t| !t.is_empty()).collect();
+    // A leading `[Group]` tag is not part of the title.
+    let body = match name
+        .trim_start()
+        .strip_prefix('[')
+        .and_then(|r| r.split_once(']'))
+    {
+        Some((_, rest)) if !rest.trim().is_empty() => rest,
+        _ => name,
+    };
+    let raw: Vec<&str> = body.split(is_sep).filter(|t| !t.is_empty()).collect();
     let tokens: Vec<String> = raw.iter().map(|t| t.to_lowercase()).collect();
     let has = |t: &str| tokens.iter().any(|x| x == t);
     let has_pair = |a: &str, b: &str| tokens.windows(2).any(|w| w[0] == a && w[1] == b);

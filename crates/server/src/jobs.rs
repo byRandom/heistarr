@@ -16,7 +16,19 @@ pub const RESEARCH_AFTER: i64 = 6 * 3600;
 pub const SEARCH_BATCH: i64 = 10;
 pub const HISTORY_DAYS: i64 = 90;
 
+/// The download check interval: `HEISTARR_CHECK_INTERVAL` seconds (1 to
+/// 3600; the browser tests use a short one), else `CHECK_EVERY`.
+fn check_every() -> Duration {
+    std::env::var("HEISTARR_CHECK_INTERVAL")
+        .ok()
+        .and_then(|v| v.trim().parse::<u64>().ok())
+        .filter(|s| (1..=3600).contains(s))
+        .map(Duration::from_secs)
+        .unwrap_or(CHECK_EVERY)
+}
+
 pub fn spawn(app: App) {
+    let every = check_every();
     tokio::spawn(async move {
         let mut last_search = 0i64;
         let mut last_cleanup = 0i64;
@@ -34,7 +46,7 @@ pub fn spawn(app: App) {
                 cleanup(&app);
             }
             tokio::select! {
-                _ = tokio::time::sleep(CHECK_EVERY) => {}
+                _ = tokio::time::sleep(every) => {}
                 _ = app.wake.notified() => {
                     // A grab or a failure: let the client register it, then
                     // look again; failures also search right away.

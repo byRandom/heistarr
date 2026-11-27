@@ -48,8 +48,21 @@ pub fn router(app: App) -> Router {
 
     let web_dir = app.cfg.web_dir.clone();
     let index = web_dir.join("index.html");
-    let static_files = tower_http::services::ServeDir::new(&web_dir)
-        .fallback(tower_http::services::ServeFile::new(index));
+    let serve_dir = tower_http::services::ServeDir::new(&web_dir)
+        .fallback(tower_http::services::ServeFile::new(index.clone()));
+    // Checked on every request, so building the UI while the server runs
+    // works without a restart.
+    let static_files = tower::service_fn(move |req: axum::extract::Request| {
+        let serve_dir = serve_dir.clone();
+        let index = index.clone();
+        async move {
+            if !index.exists() {
+                return Ok::<_, std::convert::Infallible>(no_web_ui(&index).into_response());
+            }
+            let r = tower::ServiceExt::oneshot(serve_dir, req).await?;
+            Ok(r.into_response())
+        }
+    });
 
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -75,6 +88,33 @@ pub fn router(app: App) -> Router {
             ),
         )
         .with_state(app)
+}
+
+/// Shown instead of the app when the web UI has not been built.
+fn no_web_ui(index: &std::path::Path) -> Response {
+    let dir = index.parent().unwrap_or(index).display().to_string();
+    let dir = dir
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;");
+    let body = format!(
+        r#"<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Heistarr: web UI not built</title>
+<style>body{{background:#0c0620;color:#fff0fb;font:15px/1.5 system-ui,sans-serif;max-width:720px;margin:48px auto;padding:0 20px}}
+h1{{color:#ff3ea5}}code,pre{{background:#211348;border-radius:6px;padding:2px 6px}}pre{{padding:12px;overflow:auto}}</style></head>
+<body><h1>Heistarr is running, but the web UI is not built</h1>
+<p>The server looked for it in <code>{dir}</code>. The UI is compiled to WebAssembly separately from the server. From the source folder:</p>
+<pre>rustup target add wasm32-unknown-unknown
+cargo install wasm-bindgen-cli --version 0.2.100 --locked
+./scripts/build-web.sh</pre>
+<p>Then reload this page (no restart needed). To use a UI built elsewhere, set <code>HEISTARR_WEB</code> to its folder.
+The release packages and the Docker image already include it.</p></body></html>"#
+    );
+    (
+        StatusCode::SERVICE_UNAVAILABLE,
+        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        body,
+    )
+        .into_response()
 }
 
 // ---- accounts ----

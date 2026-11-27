@@ -1,0 +1,12 @@
+{
+  "name": "heistarr-e2e",
+  "private": true,
+  "description": "Browser tests: the real Heistarr binary and web UI against fake services",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
+}

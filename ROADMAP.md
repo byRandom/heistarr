@@ -26,8 +26,8 @@ The Radarr core, with the download client that matters most here.
 Make 0.1 something you can leave running and forget.
 
 - ⬜ Image tested on a real Synology (DSM 7) with Download Station
-- ⬜ Release-name test corpus: hundreds of real names, grown with every bug report
-- ⬜ Browser tests (Playwright) in CI, with screenshots
+- 🚧 Release-name test corpus: started with 48 names, to grow to hundreds
+- ✅ Browser tests (Playwright) in CI and before every release
 - ⬜ Calendar of upcoming digital/physical releases for wanted movies
 - ⬜ Minimum availability (announced, in cinemas, released) before searching
 - ⬜ Rename existing files to the naming scheme; configurable naming

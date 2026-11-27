@@ -20,17 +20,29 @@ fn env(name: &str) -> Option<String> {
     std::env::var(name).ok().filter(|v| !v.trim().is_empty())
 }
 
+/// Where the built web UI is: `HEISTARR_WEB`, else `web/` next to the
+/// binary (release packages, Docker), else `crates/web/dist` of this source
+/// tree (`cargo run`, from any directory).
 fn web_dir() -> PathBuf {
     if let Some(w) = env("HEISTARR_WEB") {
         return w.into();
     }
+    let mut candidates = Vec::new();
     if let Ok(exe) = std::env::current_exe()
         && let Some(dir) = exe.parent()
-        && dir.join("web/index.html").exists()
     {
-        return dir.join("web");
+        candidates.push(dir.join("web"));
     }
-    PathBuf::from("crates/web/dist")
+    candidates.push(PathBuf::from("crates/web/dist"));
+    candidates.push(PathBuf::from(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../web/dist"
+    )));
+    let source_tree = candidates.last().cloned().expect("one candidate");
+    candidates
+        .into_iter()
+        .find(|d| d.join("index.html").exists())
+        .unwrap_or(source_tree)
 }
 
 /// `heistarr healthcheck`: exit 0 when the local server answers /healthz.
@@ -87,7 +99,8 @@ async fn main() -> Result<()> {
     };
     if !cfg.web_dir.join("index.html").exists() {
         tracing::warn!(
-            "no web UI at {} (set HEISTARR_WEB); the API still works",
+            "no web UI at {}: build it with ./scripts/build-web.sh (or set HEISTARR_WEB); \
+             the API works and the browser shows how to build it",
             cfg.web_dir.display()
         );
     }
